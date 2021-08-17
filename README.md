@@ -6,7 +6,7 @@ X event daemon that simulates trackpad scroll acceleration as felt on other oper
 ### **Important Usage Notes**:
 This daemon works best with the trackpad scrolling distance set to be very very small (as to be nearly useless without this daemon activated). The smaller distance allows each mouse-button event to provide more granular movement. If the scroll distance is too large, this tool is more harm than good as you will likely immediately scroll to the top or bottom of the window.
 
-I use libinput as my trackpad driver, and in recent versions of the driver I can achieve the smallest scroll distance with `xinput`:
+I use libinput as my trackpad driver, and in recent versions of the driver I can achieve the smallest scroll distance with this `xinput` command:
 ```sh
 xinput set-prop 'DLL075B:01 06CB:76AE Touchpad' 'libinput Scrolling Pixel Distance' 50
 ```
@@ -15,20 +15,13 @@ Your touchpad name (second positional argument) will likely be different. For th
 
 ---
 
-### TO-DO:
-- [x] ~Vertical and horizontal scroll acceleration~
-- [x] ~CLI flags to adjust scaling quantities~
-- [ ] CLI flags to daemonize or run in foreground
-- [ ] `make install`
-
-
 ### Install
-- `make && make install` and spawn `x-scroll-acceleration` as part of your login initialization
-- **or** modify `run.sh` with your respective `xinput` or similar input-driver configuration and execute it.
+- `make && make install` and execute `x-scroll-acceleration` as part of your login initialization
 
 
 ### Usage
 See `x-scroll-acceleration --help`
+
 Example: `x-scroll-acceleration --velocity-exponent 1.5 --scroll-threshold 0.05`
 
 
