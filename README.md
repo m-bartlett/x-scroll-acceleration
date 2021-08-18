@@ -1,5 +1,5 @@
 
-# x-scroll-acceleration <img alt="logo" align="left" src="https://user-images.githubusercontent.com/85039141/129835610-a53994cc-7bce-4420-b078-3b6d5803ed7d.png">
+# x-scroll-acceleration <img alt="logo" align="left" height="150" width="150" src="https://user-images.githubusercontent.com/85039141/129835610-a53994cc-7bce-4420-b078-3b6d5803ed7d.png">
 X event daemon that simulates trackpad scroll acceleration as felt on other operating systems, e.g. macOS. Most apps need to implement scroll momentum through XInput2 for just themselves, but this application allows for scroll acceleration globally in all X applications, regardless if they have implemented their own scrolling momentum.
 
 
