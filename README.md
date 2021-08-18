@@ -1,12 +1,7 @@
 
-# x-scroll-acceleration
-
-<img alt="logo" align="left" height="120" width="120" src="https://user-images.githubusercontent.com/85039141/129837132-4ef7b2dd-664f-4225-9879-00c42839d71d.png">
-&nbsp;
+# x-scroll-acceleration <img alt="logo" align="left" height="120" width="120" src="https://user-images.githubusercontent.com/85039141/129837132-4ef7b2dd-664f-4225-9879-00c42839d71d.png">
 
 X event daemon that simulates trackpad scroll acceleration as felt on other operating systems, e.g. macOS. Most apps need to implement scroll momentum through XInput2 for just themselves, but this application allows for scroll acceleration globally in all X applications, regardless if they have implemented their own scrolling momentum.
-
-&nbsp;
 
 ### **Important Usage Notes**:
 This daemon works best with the trackpad scrolling distance set to be very very small (as to be nearly useless without this daemon activated). The smaller distance allows each mouse-button event to provide more granular movement. If the scroll distance is too large, this tool is more harm than good as you will likely immediately scroll to the top or bottom of the window.
