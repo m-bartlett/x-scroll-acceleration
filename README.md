@@ -22,7 +22,7 @@ Your touchpad name (second positional argument) will likely be different. For th
 ### Usage
 See `x-scroll-acceleration --help`
 
-Example: `x-scroll-acceleration --velocity-exponent 1.5 --scroll-threshold 0.05`
+Example: `x-scroll-acceleration --exponent 1.5 --scroll-threshold 0.05`
 
 
 ### About

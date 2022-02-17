@@ -16,7 +16,7 @@ $(BIN)/%: %.c
 	mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
-install:
+install: $(TARGET)
 	install -m 755 -D --target-directory "$(BINPREFIX)" "$(TARGET)"
 
 uninstall:

@@ -31,6 +31,7 @@ const unsigned char button_pairs[2][2] = {
 double accumulator[] = { 0.0, 0.0 };
 double scroll_threshold=0.1;
 double scroll_exponent=1.5;
+double scroll_scalar = 0.2;
 
 
 void handleScroll(Display *display, double intensity, unsigned char axis) {
@@ -38,7 +39,7 @@ void handleScroll(Display *display, double intensity, unsigned char axis) {
   double sign = intensity < 0.0 ? -1 : 1;
   double magnitude = fabs(intensity);
 
-  intensity = sign * pow(magnitude*2, scroll_exponent);
+  intensity = sign * pow(magnitude * scroll_scalar, scroll_exponent);
 
   accumulator[axis] += intensity;
 
@@ -136,7 +137,7 @@ void selectRawMotionEvents(Display *display) {
 }
 
 static int print_usage(char *argv[]) {
-  fprintf(stderr, "%s [--help|-h] [--velocity-exponent|-p *.f] [--scroll-threshold|-s *.f]\n", argv[0]);
+  fprintf(stderr, "%s [--help|-h] [--scalar|-s *.f] [--exponent|-p *.f] [--threshold|-t *.f]\n", argv[0]);
   return EXIT_FAILURE;
 }
 
@@ -144,9 +145,10 @@ static int print_usage(char *argv[]) {
 int main(int argc, char *argv[]) {
 
   static const struct option long_options[] = {
-    {"scroll-threshold",   /*has_arg=*/1, NULL, 's'},
-    {"velocity-exponent", /*has_arg=*/1, NULL, 'p'},
-    {"help", /*has_arg=*/0, NULL, 'h'},
+    {"threshold", /*has_arg=*/1, NULL, 't'},
+    {"exponent",  /*has_arg=*/1, NULL, 'p'},
+    {"scalar",    /*has_arg=*/1, NULL, 's'},
+    {"help",      /*has_arg=*/0, NULL, 'h'},
     {NULL,     0, NULL, 0}
   };
 
@@ -155,10 +157,13 @@ int main(int argc, char *argv[]) {
     switch (opt) {
       case 'h': // help
         return print_usage(argv);
-      case 's': // scroll-threshold
+      case 's': // scalar
+        scroll_scalar = atof(optarg);
+        break;
+      case 't': // threshold
         scroll_threshold = atof(optarg);
         break;
-      case 'p': // scroll exponent
+      case 'p': // exponent, "p"ower
         scroll_exponent = atof(optarg);
         break;
       default:
