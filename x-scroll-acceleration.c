@@ -30,8 +30,8 @@ const unsigned char button_pairs[2][2] = {
 
 double accumulator[] = { 0.0, 0.0 };
 double scroll_threshold=0.1;
-double scroll_exponent=1.5;
-double scroll_scalar = 0.2;
+double scroll_exponent=1.25;
+double scroll_scalar = 0.1;
 
 
 void handleScroll(Display *display, double intensity, unsigned char axis) {
