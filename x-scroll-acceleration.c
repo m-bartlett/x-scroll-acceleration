@@ -134,7 +134,9 @@ void selectRawMotionEvents(Display *display) {
 }
 
 static int print_usage(char *argv[]) {
-  fprintf(stderr, "%s [--help|-h] [--scalar|-s *.f] [--exponent|-p *.f] [--threshold|-t *.f]\n", argv[0]);
+  fprintf(stderr,
+          "%s [--help|-h] [--verbose|-v] [--scalar|-s *.f] [--exponent|-p *.f] [--scroll-threshold|-t *.f] [--speed-threshold|-m *.f]\n",
+          argv[0]);
   return EXIT_FAILURE;
 }
 
@@ -142,29 +144,25 @@ static int print_usage(char *argv[]) {
 int main(int argc, char *argv[]) {
 
   static const struct option long_options[] = {
-    {"threshold", /*has_arg=*/1, NULL, 't'},
-    {"exponent",  /*has_arg=*/1, NULL, 'p'},
-    {"scalar",    /*has_arg=*/1, NULL, 's'},
-    {"help",      /*has_arg=*/0, NULL, 'h'},
-    {NULL,     0, NULL, 0}
+    {"scroll-threshold", /*has_arg=*/1, NULL, 't'},
+    {"speed-threshold",  /*has_arg=*/1, NULL, 'm'},
+    {"exponent",         /*has_arg=*/1, NULL, 'p'},
+    {"scalar",           /*has_arg=*/1, NULL, 's'},
+    {"verbose",          /*has_arg=*/0, NULL, 'v'},
+    {"help",             /*has_arg=*/0, NULL, 'h'},
+    {NULL,                           0, NULL,  0}
   };
 
   int opt;
-  while ((opt = getopt_long(argc, argv, "-hs:p:", long_options, NULL) ) != -1) {
+  while ((opt = getopt_long(argc, argv, "-hvs:p:m:t:", long_options, NULL) ) != -1) {
     switch (opt) {
-      case 'h': // help
-        return print_usage(argv);
-      case 's': // scalar
-        scroll_scalar = atof(optarg);
-        break;
-      case 't': // threshold
-        scroll_threshold = atof(optarg);
-        break;
-      case 'p': // exponent, "p"ower
-        scroll_exponent = atof(optarg);
-        break;
-      default:
-        return print_usage(argv);
+      case 'v': verbose = true; break;
+      case 's': scroll_scalar = atof(optarg); break;
+      case 't': scroll_threshold = atof(optarg); break;
+      case 'p': scroll_exponent = atof(optarg); break;
+      case 'm': speed_threshold = atof(optarg); break;
+      case 'h':
+      default: return print_usage(argv);
     }
   }
 
@@ -197,18 +195,27 @@ int main(int argc, char *argv[]) {
 
   selectRawMotionEvents(display);
 
-  // XStoreName(display, window, "Scrolling Logger");
-
   Atom net_wm_window_type = XInternAtom(display, "_NET_WM_WINDOW_TYPE", False);
   Atom atoms[1] = { None };
   atoms[0] = XInternAtom (display, "_NET_WM_WINDOW_TYPE_DIALOG", False);
-  XChangeProperty(display, window, net_wm_window_type, XA_ATOM, 32, PropModeReplace, (unsigned char *)atoms, 1);
+  XChangeProperty( display, window, net_wm_window_type, XA_ATOM, 32, PropModeReplace,
+                   (unsigned char *)atoms, 1);
 
   Atom wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", False);
   XSetWMProtocols(display, window, &wm_delete_window, 1);
 
   XMapWindow(display, window);
   XFlush(display);
+
+  if (verbose) {
+    printf(
+      "scroll_threshold = %f\nscroll_exponent = %f\nscroll_scalar = %f\nspeed_threshold = %f\n",
+      scroll_threshold,
+      scroll_exponent,
+      scroll_scalar,
+      speed_threshold
+    );
+  }
 
   processEvents(display, window, xi_opcode, &wm_delete_window);
   XCloseDisplay(display);
