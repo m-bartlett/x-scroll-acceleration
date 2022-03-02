@@ -1,7 +1,3 @@
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/extensions/XInput2.h>
-#include <X11/extensions/XTest.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,9 +6,19 @@
 #include <math.h>
 #include <getopt.h>
 #include <stdbool.h>
-  // xinput test-xi2 --root
-  // xinput list --long|grep Label -B 1w
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/extensions/XInput2.h>
+#include <X11/extensions/XTest.h>
 
+/* Useful for debugging:
+    xinput test-xi2 --root
+    xinput list --long|grep Label -B 1w
+*/
+
+/*  Defaults calibrated for 1080p at 92dpi using:
+      xinput set-prop 'DLL075B:01 06CB:76AE Touchpad' 'libinput Scrolling Pixel Distance' 25
+*/
 
 enum { ScrollAxisX = 0, ScrollAxisY = 1 };
 
@@ -28,19 +34,22 @@ const unsigned char button_pairs[2][2] = {
   [ScrollAxisY] = { ScrollButtonDown, ScrollButtonUp }
 };
 
+bool verbose = false;
+
 double accumulator[] = { 0.0, 0.0 };
-double scroll_threshold=0.1;
-double scroll_exponent=1.25;
-double scroll_scalar = 0.1;
+double scroll_threshold = 0.1;
+double scroll_exponent = 1.5;
+double scroll_scalar = 0.035;
+double speed_threshold = 10.0;
 
 
 void handleScroll(Display *display, double intensity, unsigned char axis) {
-
   double sign = intensity < 0.0 ? -1 : 1;
   double magnitude = fabs(intensity);
 
-  intensity = sign * pow(magnitude * scroll_scalar, scroll_exponent);
+  if (magnitude < speed_threshold) return;
 
+  intensity = sign * pow(magnitude * scroll_scalar, scroll_exponent);
   accumulator[axis] += intensity;
 
   unsigned char button=0;
@@ -57,7 +66,6 @@ void handleScroll(Display *display, double intensity, unsigned char axis) {
   }
   XFlush(display);
   accumulator[axis] = frac_part;
-
 }
 
 
@@ -77,15 +85,11 @@ void processEvents(Display *display, Window window, int xi_opcode, Atom *wm_dele
 
       switch (device_event->evtype) {
         case XI_RawMotion: {
-
           XIRawEvent *raw_event = (XIRawEvent *) device_event;
-          // double delta = raw_event->raw_values[0];
-
           XIValuatorState *states = &raw_event->valuators;
           double delta = states->values[0];
 
-          if (delta != delta || 1+delta == delta) // test for inf and nan
-            break;
+          if (delta != delta || 1+delta == delta) break; // test for inf and nan
 
           bool horizontal = XIMaskIsSet(raw_event->valuators.mask, 2);
           bool vertical   = XIMaskIsSet(raw_event->valuators.mask, 3);
@@ -95,21 +99,14 @@ void processEvents(Display *display, Window window, int xi_opcode, Atom *wm_dele
           switch(scroll_event) {
             case 3: { // horizontal && vertical
               double delta2 = states->values[1];
-              if (delta2 == delta2 && 1+delta2 != delta2) {
+              if (delta2 == delta2 && 1+delta2 != delta2) { // test for inf and nan
                 handleScroll(display, delta2, ScrollAxisY);
               }
               handleScroll(display, delta, ScrollAxisX);
               break;
             }
-
-            case 2:  // horizontal
-              handleScroll(display, delta, ScrollAxisX);
-              break;
-
-            case 1: // vertical
-              handleScroll(display, delta, ScrollAxisY);
-              break;
-
+            case 2: /*horizontal*/ handleScroll(display, delta, ScrollAxisX); break;
+            case 1: /*vertical*/   handleScroll(display, delta, ScrollAxisY); break;
             default:
           }
 
