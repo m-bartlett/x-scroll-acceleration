@@ -39,7 +39,7 @@ bool verbose = false;
 double accumulator[] = { 0.0, 0.0 };
 double scroll_threshold = 0.1;
 double scroll_exponent = 1.5;
-double scroll_scalar = 0.035;
+double scroll_scalar = 0.05;
 double speed_threshold = 10.0;
 
 

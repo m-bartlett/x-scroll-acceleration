@@ -4,7 +4,7 @@
 X event daemon that simulates trackpad scroll acceleration as felt on other operating systems, e.g. macOS. Most apps need to implement scroll momentum through XInput2 for just themselves, but this application allows for scroll acceleration globally in all X applications, regardless if they have implemented their own scrolling momentum.
 
 ### **Important Usage Notes**:
-This daemon works best with the trackpad scrolling distance set to be very very small (as to be nearly useless without this daemon activated). The smaller distance allows each mouse-button event to provide more granular movement. If the scroll distance is too large, this tool is more harm than good as you will likely immediately scroll to the top or bottom of the window.
+This daemon works best with the trackpad scrolling distance set to be very small. The smaller distance allows each mouse-button event to provide more granular movement. If the scroll distance is too large, this tool is more harm than good as you will likely immediately scroll to the top or bottom of the window.
 
 I use libinput as my trackpad driver, and in recent versions of the driver I can achieve the smallest scroll distance with this `xinput` command:
 ```sh
@@ -22,7 +22,7 @@ Your touchpad name (second positional argument) will likely be different. For th
 ### Usage
 See `x-scroll-acceleration --help`
 
-Example: `x-scroll-acceleration --exponent 1.5 --scroll-threshold 0.05`
+Example: `x-scroll-acceleration --scroll-threshold 0.1 --exponent 1.5 --scalar 0.035 --speed-threshold 10.0 -v`
 
 
 ### About
