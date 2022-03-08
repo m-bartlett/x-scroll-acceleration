@@ -17,7 +17,7 @@
 */
 
 /*  Defaults calibrated for 1080p at 92dpi using:
-      xinput set-prop 'DLL075B:01 06CB:76AE Touchpad' 'libinput Scrolling Pixel Distance' 25
+      xinput set-prop 'DLL075B:01 06CB:76AE Touchpad' 'libinput Scrolling Pixel Distance' 50
 */
 
 enum { ScrollAxisX = 0, ScrollAxisY = 1 };
@@ -36,21 +36,35 @@ const unsigned char button_pairs[2][2] = {
 
 bool verbose = false;
 
-double accumulator[] = { 0.0, 0.0 };
+double accumulator[]    = { 0.0, 0.0 };
 double scroll_threshold = 0.1;
-double scroll_exponent = 1.5;
-double scroll_scalar = 0.05;
-double speed_threshold = 10.0;
+double scroll_exponent  = 0.5;
+double scroll_scalar    = 0.05;
+double speed_threshold  = 3.0;
 
+Display *display;
 
-void handleScroll(Display *display, double intensity, unsigned char axis) {
-  double sign = intensity < 0.0 ? -1 : 1;
-  double magnitude = fabs(intensity);
+void handleScroll(double intensity, unsigned char axis) {
+  bool negative = signbit(intensity);
+  double magnitude = fabs(intensity) * scroll_scalar;
+
+  #ifdef DEBUG
+    double old_accumulation = accumulator[axis];
+    printf("%f\r", magnitude);
+    fflush(stdout);
+  #endif
 
   if (magnitude < speed_threshold) return;
 
-  intensity = sign * pow(magnitude * scroll_scalar, scroll_exponent);
-  accumulator[axis] += intensity;
+  intensity = pow(magnitude, scroll_exponent);
+  if (negative) intensity *= -1;
+
+
+  if (signbit(accumulator[axis]) == negative) {
+    accumulator[axis] += intensity; // Aggregate if same direction
+  } else {
+    accumulator[axis] = intensity; // Reset on direction change
+  }
 
   unsigned char button=0;
   if      (accumulator[axis] >  scroll_threshold) button = button_pairs[axis][0];
@@ -66,10 +80,20 @@ void handleScroll(Display *display, double intensity, unsigned char axis) {
   }
   XFlush(display);
   accumulator[axis] = frac_part;
+
+  #ifdef DEBUG
+  printf(
+    "(%.2f*%.2f => %.2f) ^ %.2f => %.2f\t-> |(%.2f + %.2f => %.2f)| > %.2f\t-->\t%d"
+    "\n",
+    fabs(intensity), scroll_scalar, magnitude, scroll_exponent, intensity,
+    intensity, old_accumulation, frac_part+int_part, scroll_threshold,
+    clicks
+  );
+  #endif
 }
 
 
-void processEvents(Display *display, Window window, int xi_opcode, Atom *wm_delete_window) {
+void processEvents(Window window, int xi_opcode, Atom *wm_delete_window) {
   while (True) {
     XEvent event;
     XGenericEventCookie *cookie = &event.xcookie;
@@ -100,13 +124,13 @@ void processEvents(Display *display, Window window, int xi_opcode, Atom *wm_dele
             case 3: { // horizontal && vertical
               double delta2 = states->values[1];
               if (delta2 == delta2 && 1+delta2 != delta2) { // test for inf and nan
-                handleScroll(display, delta2, ScrollAxisY);
+                handleScroll(delta2, ScrollAxisY);
               }
-              handleScroll(display, delta, ScrollAxisX);
+              handleScroll(delta, ScrollAxisX);
               break;
             }
-            case 2: /*horizontal*/ handleScroll(display, delta, ScrollAxisX); break;
-            case 1: /*vertical*/   handleScroll(display, delta, ScrollAxisY); break;
+            case 2: /*horizontal*/ handleScroll(delta, ScrollAxisX); break;
+            case 1: /*vertical*/   handleScroll(delta, ScrollAxisY); break;
             default:
           }
 
@@ -167,7 +191,8 @@ int main(int argc, char *argv[]) {
   }
 
 
-  Display *display = XOpenDisplay(0);
+  display = XOpenDisplay(0);
+
   if (!display) {fprintf(stderr, "Error opening display\n"); return -1; }
 
   int xi_opcode, xi_firstevent, xi_firsterror;
@@ -217,7 +242,7 @@ int main(int argc, char *argv[]) {
     );
   }
 
-  processEvents(display, window, xi_opcode, &wm_delete_window);
+  processEvents(window, xi_opcode, &wm_delete_window);
   XCloseDisplay(display);
 
   return 0;

@@ -4,19 +4,23 @@
 X event daemon that simulates trackpad scroll acceleration as felt on other operating systems, e.g. macOS. Most apps need to implement scroll momentum through XInput2 for just themselves, but this application allows for scroll acceleration globally in all X applications, regardless if they have implemented their own scrolling momentum.
 
 ### **Important Usage Notes**:
-This daemon works best with the trackpad scrolling distance set to be very small. The smaller distance allows each mouse-button event to provide more granular movement. If the scroll distance is too large, this tool is more harm than good as you will likely immediately scroll to the top or bottom of the window.
+~This daemon works best with the trackpad scrolling distance set to be very small. The smaller distance allows each mouse-button event to provide more granular movement. If the scroll distance is too large, this tool is more harm than good as you will likely immediately scroll to the top or bottom of the window.~
 
-I use libinput as my trackpad driver, and in recent versions of the driver I can achieve the smallest scroll distance with this `xinput` command:
+The above used to be true, but the scroll acceleration has been empirically demonstrated to work well with large scroll distances. I have found that large scroll distances with less sensitive configuration of this X scroll event daemon produces a far less jittery/jumpy experience compared to small scroll distances with a sensitive configuration of this daemon. Your (scrolling) mileage may vary, so just experiment with different combinations of your scroll input sensitivity and the various CLI flags of this daemon.
+
+I use libinput as my trackpad driver, and in recent versions of the driver I can achieve the largest scroll distance with this `xinput` command:
 ```sh
-xinput set-prop 'DLL075B:01 06CB:76AE Touchpad' 'libinput Scrolling Pixel Distance' 50
+xinput set-prop 'DLL075B:01 06CB:76AE Touchpad' 'libinput Scrolling Pixel Distance' 10
 ```
 
-Your touchpad name (second positional argument) will likely be different. For this xinput property, ***larger values result in smaller scroll distance***. In my case, 50 is the maximum value xinput will allow me to set.
+Your touchpad name (second positional argument) will likely be different. For this xinput property, ***larger values result in smaller scroll distance***. In my case, 50 is the maximum value and 10 is the minimum value xinput will allow me to set.
 
 ---
 
 ### Install
 - `make && make install` and execute `x-scroll-acceleration` as part of your login initialization
+
+Alternatively, to create a debugging version of the binary which prints verbose output detailing the scroll aggregation calculations and event values execute `make debug` instead of `make` or `make x-scroll-acceleration`.
 
 
 ### Usage
